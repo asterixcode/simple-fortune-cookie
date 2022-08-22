@@ -1,0 +1,28 @@
+name: Master Pipeline (Stage)
+on:
+  push:
+    branches:
+      - main
+      - test/*
+steps:
+  deploy:
+    runs-on: self-hosted
+    needs:
+      - upload-to-dockerhub
+    steps:
+      - name: Deploy
+        run: chmod +x ci/deploy.sh && ci/deploy.sh
+    upload-to-dockerhub:
+      runs-on: self-hosted
+      needs:
+        - test
+      steps:
+        - name: Download code
+          uses: actions/download-artifact@v2
+          with:
+            name: code
+            path: .
+        - name: Build Docker
+          run: chmod +x ci/build-docker.sh && ci/build-docker.sh
+        - name: Push Docker
+          run: chmod +x ci/push-docker.sh && ci/push-docker.sh
